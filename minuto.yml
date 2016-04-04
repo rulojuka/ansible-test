@@ -1,0 +1,22 @@
+---
+- hosts: webservers
+  tasks:
+    - name: Update apt cache
+      apt: update_cache=true
+    - name: Upgrade installed packages
+      apt: upgrade=dist
+    - name: Install pre-requisites
+      apt: pkg={{item}} state=installed update_cache=true
+      with_items:
+        - vim
+        - htop
+        - git
+	- name: Configure servers with ruby support
+	  hosts: all
+	  roles:
+	    - { role: rvm_io.rvm1-ruby, tags: ruby, sudo: True }
+
+    - name: Download/Update media_choice_users from github
+      git:
+        repo: https://github.com/minuto/media_choice_users.git
+        dest: /srv/media_choice_users
