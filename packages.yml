@@ -1,0 +1,12 @@
+---
+- name: Update apt cache
+  apt: update_cache=true
+- name: Upgrade installed packages
+  apt: upgrade=dist
+- name: Install pre-requisites
+  apt: pkg={{item}} state=installed update_cache=true
+  with_items:
+    - vim
+    - htop
+    - git
+    - libpq-dev

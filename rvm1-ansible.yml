@@ -1,0 +1,5 @@
+---
+- name: Configure servers with ruby support - rvm
+  hosts: webservers
+  roles:
+    - { role: rvm1-ansible, vars: rvm1_rubies='ruby-2.3.0', tags: ruby, sudo: True }

@@ -1,4 +1,38 @@
 ---
+- include: rvm1-ansible.yml
+
 - hosts: webservers
-  roles:
-    - { role: rvm_io.rvm1-ruby, tags: ruby, sudo: True }
+  vars:
+    ssh_keys_path: keys/
+    media_choice_users_path: /srv/media_choice_users
+  tasks:
+    - include: packages.yml
+    - name: Create ssh directory
+      file: path=/root/.ssh state=directory
+    - name: Copies keys
+      copy:
+        src: "{{ ssh_keys_path }}"
+        dest: /root/.ssh/
+    - name: Set permission to private key
+      file: dest=/root/.ssh/id_rsa mode=0600
+    - name: Set permission to public key
+      file: dest=/root/.ssh/id_rsa.pub mode=0600
+    - name: Download/Update media_choice_users from github
+      git:
+        repo: git@github.com:minuto/media_choice_users.git
+        dest: "{{media_choice_users_path}}"
+        version: master
+        accept_hostkey: true
+        force: yes
+    - name: Bundle install - It may take a few minutes
+      command: bundle install
+      args:
+        chdir: "{{media_choice_users_path}}"
+    - name: media_choice_users - Copy application.yml.sample
+      command: cp "{{media_choice_users_path}}/config/application.yml.sample" "{{media_choice_users_path}}/config/application.yml"
+    - name: media_choice_users - Copy database.yml.sample
+      command: cp "{{media_choice_users_path}}/config/database.yml.sample" "{{media_choice_users_path}}/config/database.yml"
+    - name: media_choice_users - Setting environment and running tests
+      shell: "export RAILS_ENV=test && bundle exec rake db:reset && bundle exec rake spec"
+      args:
+        chdir: "{{media_choice_users_path}}"
